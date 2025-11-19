@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 from pinecone import Pinecone, ServerlessSpec
-from langchain_openai import OpenAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
 
 load_dotenv()
@@ -63,7 +63,7 @@ def initialize_pinecone(api_key: str):
         raise ValueError("PINECONE_API_KEY is missing from environment variables")
     return Pinecone(api_key=api_key)
 
-def create_pinecone_index_if_not_exists(pc: Pinecone, index_name: str, dimension: int = 1536):
+def create_pinecone_index_if_not_exists(pc: Pinecone, index_name: str, dimension: int = 3072):
     """
     Create a Pinecone index if it does not exist, with default serverless spec.
     """
@@ -77,10 +77,9 @@ def create_pinecone_index_if_not_exists(pc: Pinecone, index_name: str, dimension
 
 def setup_vector_stores(pc: Pinecone, parent_index_name: str, child_index_name: str, embeddings_model: str):
     """
-    Create OpenAI embeddings and initialize PineconeVectorStore instances for both parent and child indexes.
+    Create Google embeddings and initialize PineconeVectorStore instances for both parent and child indexes.
     """
-    embeddings = OpenAIEmbeddings(model=embeddings_model)
-    
+    embeddings = GoogleGenerativeAIEmbeddings(model=embeddings_model)    
     parent_index_name=pc.Index(parent_index_name)
     child_index_name=pc.Index(child_index_name)
     
@@ -96,6 +95,9 @@ def index_documents(parent_vector_store, child_vector_store, parent_documents, c
     child_vector_store.add_documents(documents=child_documents)
 
 def main(document_text: str):
+    emb = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
+    vec = emb.embed_query("hello world")
+    print("ACTUAL EMBEDDING DIM:", len(vec))
     """
     Orchestrates the entire pipeline from cleaning text, chunking, and indexing.
     """
@@ -113,7 +115,7 @@ def main(document_text: str):
     create_pinecone_index_if_not_exists(pc, child_index_name)
 
     parent_vector_store, child_vector_store = setup_vector_stores(
-        pc, parent_index_name, child_index_name, embeddings_model="text-embedding-3-small"
+        pc, parent_index_name, child_index_name, embeddings_model="models/gemini-embedding-001"
     )
 
     index_documents(parent_vector_store, child_vector_store, parent_docs, child_docs)
