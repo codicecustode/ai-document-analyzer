@@ -64,7 +64,7 @@ def initialize_pinecone(api_key: str):
     pc = Pinecone(api_key=api_key)
     return pc
 
-pc = initialize_pinecone()
+pc = initialize_pinecone(os.getenv("PINECONE_API_KEY"))
 
 def create_pinecone_index_if_not_exists(pc: Pinecone, index_name: str, dimension: int = 3072):
     """
