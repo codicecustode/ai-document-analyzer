@@ -61,7 +61,10 @@ def initialize_pinecone(api_key: str):
     """
     if not api_key:
         raise ValueError("PINECONE_API_KEY is missing from environment variables")
-    return Pinecone(api_key=api_key)
+    pc = Pinecone(api_key=api_key)
+    return pc
+
+pc = initialize_pinecone()
 
 def create_pinecone_index_if_not_exists(pc: Pinecone, index_name: str, dimension: int = 3072):
     """
@@ -106,7 +109,6 @@ def main(document_text: str):
     parent_docs, child_docs = chunk_text_hierarchical(cleaned_text, parent_splitter, child_splitter)
 
     pinecone_api_key = os.getenv("PINECONE_API_KEY")
-    pc = initialize_pinecone(pinecone_api_key)
 
     parent_index_name = "doc-analyzer-parent-text"
     child_index_name = "doc-analyzer-child-text"
