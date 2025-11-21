@@ -7,7 +7,7 @@ from pdf2image.exceptions import (
     PDFSyntaxError
 )
 
-def extract_text_with_ocr(file_path):
+def extract_text_with_ocr(file_path) -> str:
   try:
     images = convert_from_path(file_path)
   except PDFInfoNotInstalledError:
