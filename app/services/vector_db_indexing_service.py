@@ -8,14 +8,14 @@ def setup_vector_stores(pc, parent_index_name, child_index_name, embeddings):
 
     if not pc.has_index(parent_index):
       pc.create_index(
-          name=parent_index,
+          name=parent_index_name,
           dimension=3072,
           metric="cosine",
           spec=ServerlessSpec(cloud="aws", region="us-east-1"),
       )
     if not pc.has_index(child_index):
       pc.create_index(
-          name=parent_index,
+          name=child_index_name,
           dimension=3072,
           metric="cosine",
           spec=ServerlessSpec(cloud="aws", region="us-east-1"),
