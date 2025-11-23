@@ -6,10 +6,16 @@ load_dotenv()  # Load variables from .env file into environment
 def summarize_with_gemini(text: str) -> str:
     # Construct a clear prompt for Gemini
     prompt = (
-        "This is text extracted from OCR technique. "
-        "Summarize this and ONLY return the summarized text—no extra commentary or explanation."
-        "\n\nText: " + text
+      "The following text is extracted via OCR and may contain spelling or grammar errors."
+      "Carefully correct obvious errors but do not add or invent new information."
+      "Summarize all key points concisely, using bullet points or short sections."
+      "Omit any introductory text, explanations, or 'Here is a summary...' commentary."
+      "Retain the original meaning and structure where possible, but improve readability and clarity."
+      "If the document has sections (offers, terms, names, dates, policies, conditions, etc.), separate them with headings or clear bullets."
+      "Only output the cleaned, summarized document content."
+      "\n\nText:\n" + text
     )
+
 
     try:
     # Initialize Gemini client (API key from env `GEMINI_API_KEY`)
