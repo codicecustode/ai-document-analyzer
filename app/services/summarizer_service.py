@@ -1,7 +1,9 @@
-from google import genai
 from dotenv import load_dotenv
+from services.llm_service import generate_llm_response
+import logging
 
 load_dotenv()  # Load variables from .env file into environment
+logger = logging.getLogger(__name__)
 
 def summarize_with_gemini(text: str) -> str:
     # Construct a clear prompt for Gemini
@@ -18,20 +20,7 @@ def summarize_with_gemini(text: str) -> str:
 
 
     try:
-    # Initialize Gemini client (API key from env `GEMINI_API_KEY`)
-      client = genai.Client()
-
-      # Request summary from Gemini 2.5 Flash
-      response = client.models.generate_content(
-          model="gemini-2.5-flash",
-          contents=prompt
-      )
-
-      # Return only the model's summarized output
-      return response.text
+      return generate_llm_response(prompt, model="gemini-2.5-flash")
     except Exception as e:
-      print("Google Gemini Error-->",e)
-
-#Example usage:
-#summary = summarize_with_gemini("dont summarize tell me ur version")
-#print(summary)
+      logger.error(f"Error summarizing text with Gemini: {e}")
+      raise
