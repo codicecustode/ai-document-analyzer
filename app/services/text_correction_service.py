@@ -31,7 +31,7 @@ def correct_ocr_text(text: str) -> str:
     )
     
     try:
-        corrected_text = generate_llm_response(prompt, model="gemini-2.5-flash")
+        corrected_text = generate_llm_response(prompt)
         return corrected_text
     except Exception as e:
         logger.error(f"Error correcting OCR text: {e}")

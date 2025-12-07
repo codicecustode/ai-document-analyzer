@@ -22,13 +22,13 @@ def get_llm_client() -> genai.Client:
     return _client
 
 
-def generate_llm_response(prompt: str, model: str = "gemini-2.5-flash") -> str:
+def generate_llm_response(prompt: str, model: str = "gemini-2.5-flash-lite") -> str:
     """
     Generate text using Gemini LLM.
     
     Args:
         prompt: The prompt to send to the model
-        model: Model name (default: "gemini-2.5-flash")
+        model: Model name (default: "gemini-2.5-flash-lite")
     
     Returns:
         str: Generated text response
