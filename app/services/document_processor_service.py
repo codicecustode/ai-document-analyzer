@@ -13,100 +13,46 @@ from services.vector_db_service import (
 )
 from services.mongodb_service import save_parent_chunks
 from services.document_metadata_service import update_document_status
+import time
+from concurrent.futures import ThreadPoolExecutor
 
 logger = logging.getLogger(__name__)
 
 
-def process_document(file_path: str, doc_id: str) -> None:
-    """
-    Process a document through the full pipeline:
-    1. Extract text with OCR
-    2. Clean the text
-    3. Correct OCR errors with LLM
-    4. Chunk hierarchically
-    5. Generate embeddings and store in vector DB
-    6. Save parent chunks to MongoDB
-    
-    Args:
-        file_path: Path to the document file
-        doc_id: Unique document identifier for tracking
-    
-    Raises:
-        Exception: If any step in the pipeline fails
-    """
+# Global thread pool for CPU-bound work
+executor = ThreadPoolExecutor(max_workers=4)
+
+async def process_document(file_path: str, doc_id: str) -> None:
     try:
         logger.info(f"Starting document processing for doc_id: {doc_id}")
         
-        # Step 1: Extract text from PDF
-        logger.debug("Extracting text with OCR...")
-        extracted_text = extract_text_with_ocr(file_path)
+        # ✅ Offload ALL sync blocking steps to threadpool
+        extracted_text = await asyncio.to_thread(extract_text_with_ocr, file_path)
+        cleaned_text = await asyncio.to_thread(clean_ocr_text, extracted_text)
         
-        # Step 2: Clean OCR text
-        logger.debug("Cleaning OCR text...")
-        cleaned_text = clean_ocr_text(extracted_text)
+        await update_document_status(doc_id, "processing", extracted_text, cleaned_text)
         
-        # Update document status with processed text
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            loop.run_until_complete(update_document_status(
-                doc_id, "processing", extracted_text, cleaned_text
-            ))
-        finally:
-            loop.close()
-        
-        # Step 3: Correct text with LLM
-        logger.debug("Correcting text with LLM...")
-        corrected_text = correct_ocr_text(cleaned_text)
-        
-        # Step 4: Chunk text hierarchically
-        logger.debug("Chunking text hierarchically...")
-        parent_splitter, child_splitter = get_text_splitters()
-        parent_chunks, child_chunks = chunk_text_hierarchically(
-            corrected_text, parent_splitter, child_splitter
+        corrected_text = await asyncio.to_thread(correct_ocr_text, cleaned_text)
+        parent_chunks, child_chunks = await asyncio.to_thread(
+            chunk_text_hierarchically, corrected_text, 
+            *get_text_splitters()  # Assuming this returns splitters
         )
         
-        # Step 5: Setup vector database
-        logger.debug("Setting up vector database...")
+        # Vector DB setup (if sync, offload)
         index_name = "doc-analyzer-child-text"
-        create_index_if_not_exists(index_name)
-        embeddings = get_embedding_model()
-        vector_store = get_vector_store(index_name, embeddings, create_if_not_exists=False)
+        await asyncio.to_thread(create_index_if_not_exists, index_name)
+        embeddings = await asyncio.to_thread(get_embedding_model)
+        vector_store = await asyncio.to_thread(
+            get_vector_store, index_name, embeddings, create_if_not_exists=False
+        )
         
-        # Step 6: Add child chunks to vector DB
-        logger.debug(f"Adding {len(child_chunks)} child chunks to vector store...")
-        add_documents_to_vector_store(vector_store, child_chunks)
+        # ✅ Now gather truly runs in parallel
+        task_vector = asyncio.to_thread(add_documents_to_vector_store, vector_store, child_chunks)
+        task_mongo =  save_parent_chunks(parent_chunks)  # Already async
         
-        # Step 7: Save parent chunks to MongoDB (async operation)
-        logger.debug(f"Saving {len(parent_chunks)} parent chunks to MongoDB...")
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            loop.run_until_complete(save_parent_chunks(parent_chunks))
-        finally:
-            loop.close()
-        
-        # Update document status to completed
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            loop.run_until_complete(update_document_status(doc_id, "completed"))
-        finally:
-            loop.close()
-        
-        logger.info(f"Successfully processed document {doc_id}")
+        await asyncio.gather(task_vector, task_mongo)
+        await update_document_status(doc_id, "completed")
         
     except Exception as e:
-        logger.error(f"Error processing document {doc_id}: {e}", exc_info=True)
-        # Update document status to failed
-        try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            try:
-                loop.run_until_complete(update_document_status(doc_id, "failed"))
-            finally:
-                loop.close()
-        except:
-            pass
-        raise RuntimeError("Error occur during processing the document..") from e
-
+        await update_document_status(doc_id, "failed")
+        raise

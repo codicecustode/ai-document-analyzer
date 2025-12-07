@@ -8,7 +8,7 @@ from config.mongodb_config import get_db
 logger = logging.getLogger(__name__)
 
 
-async def search_child_chunks(
+def search_child_chunks(
     query_embedding: List[float],
     index_name: str = "doc-analyzer-child-text",
     top_k: int = 3
