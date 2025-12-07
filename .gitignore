@@ -1,0 +1,10 @@
+.env
+.vscode
+/app/__pycache__
+/app/services/__pycache__
+/app/routers/__pycache__
+/app/config/__pycache__
+/__pycache__
+/ai-doc-analyzer-venv
+/app/metadata
+/app/uploads
