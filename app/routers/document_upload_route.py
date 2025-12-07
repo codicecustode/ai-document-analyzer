@@ -42,7 +42,7 @@ class DocumentListResponse(BaseModel):
 
 
 @router.post(
-    "/documents",
+    "/upload",
     response_model=DocumentUploadResponse,
     status_code=202,
     summary="Upload and process a document",
