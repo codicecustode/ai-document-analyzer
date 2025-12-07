@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Doc AI – PDF Summarizer & Q&A (Large UI)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        /* ------------------------------------------------------------ */
+        /* THEME & COLORS                                               */
+        /* ------------------------------------------------------------ */
+        :root {
+            --bg-gradient: radial-gradient(circle at top, #4f46e5, #0f172a);
+            --text-main: #e5e7eb;
+            --text-muted: #9ca3af;
+            --accent: #6366f1;
+            --accent-soft: rgba(99, 102, 241, 0.15);
+            --radius-xl: 26px;
+            --success: #4ade80;
+            --danger: #f97373;
+        }
+
+        /* ------------------------------------------------------------ */
+        /* RESET & BASE                                                 */
+        /* ------------------------------------------------------------ */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            background: var(--bg-gradient);
+            font-family: system-ui, sans-serif;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            overflow: hidden;
+            font-size: 19px;
+        }
+
+        /* ------------------------------------------------------------ */
+        /* SCROLLBAR STYLING                                            */
+        /* ------------------------------------------------------------ */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: rgba(30, 41, 59, 0.5); border-radius: 6px; }
+        ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.5); border-radius: 6px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.8); }
+
+        /* ------------------------------------------------------------ */
+        /* LAYOUT                                                       */
+        /* ------------------------------------------------------------ */
+        .app-shell {
+            width: 100%;
+            max-width: 1600px;
+            height: 94vh;
+            display: grid;
+            grid-template-columns: 1.1fr 1.3fr; /* Left | Right */
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+            padding: 22px;
+            gap: 26px;
+        }
+
+        /* --- LEFT PANEL --- */
+        .app-left {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            gap: 28px;
+            overflow-y: auto;
+        }
+
+        .upload-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            border-radius: 26px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
+        }
+
+        .dropzone {
+            border: 2px dashed rgba(148, 163, 184, 0.85);
+            padding: 32px;
+            border-radius: 28px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            background: rgba(30, 41, 59, 0.7);
+            transition: border-color 0.2s;
+        }
+        .dropzone:hover { border-color: var(--accent); }
+
+        /* --- RIGHT PANEL --- */
+        .app-right {
+            height: 100%;
+            background: rgba(15, 23, 42, 0.98);
+            border: 1px solid rgba(148, 163, 184, 0.45);
+            border-radius: 26px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            padding: 24px;
+            overflow: hidden;
+        }
+
+        /* SUMMARY PANEL */
+        .summary-panel {
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            border-radius: 22px;
+            padding: 18px;
+            height: 350px; 
+            min-height: 350px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-size: 20px;
+        }
+
+        .summary-content {
+            margin-top: 8px;
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            font-size: 19px;
+            line-height: 1.65;
+            padding-right: 10px;
+        }
+
+        /* QUESTION BOX */
+        .question-box {
+            padding: 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(148, 163, 184, 0.45);
+            background: rgba(30, 41, 59, 0.85);
+            flex-shrink: 0;
+        }
+
+        /* CHAT PANEL */
+        .chat-panel {
+            flex: 1;
+            min-height: 0;
+            border-radius: 22px;
+            border: 1px solid rgba(148, 163, 184, 0.45);
+            background: rgba(15, 23, 42, 0.95);
+            display: flex;
+            flex-direction: column;
+            padding: 18px;
+            gap: 14px;
+            overflow: hidden; 
+        }
+
+        .chat-scroll {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            font-size: 19px;
+            padding-right: 10px;
+            display: flex;
+            flex-direction: column; /* Needed for alignment to work */
+        }
+
+        .message {
+            padding: 14px 18px;
+            border-radius: 16px;
+            font-size: 19px;
+            margin-bottom: 12px;
+            max-width: 90%;
+            word-wrap: break-word;
+        }
+
+        /* ⭐ UPDATED ALIGNMENT HERE ⭐ */
+        
+        /* User (You) -> LEFT */
+        .message.user { 
+            background: #1e3a8a; 
+            border: 1px solid #3b82f6; 
+            align-self: flex-start; /* Move to Left */
+            border-bottom-left-radius: 2px; /* Visual touch */
+        }
+
+        /* AI (Server) -> RIGHT */
+        .message.assistant { 
+            background: #111827; 
+            border: 1px solid #374151; 
+            align-self: flex-end; /* Move to Right */
+            border-bottom-right-radius: 2px; /* Visual touch */
+            text-align: right; /* Text aligns right inside bubble */
+        }
+
+        /* BUTTONS & TOAST */
+        .btn { padding: 12px 20px; font-size: 19px; border-radius: 999px; cursor: pointer; border: none; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-secondary { background: #1f2937; color: white; border: 1px solid #4b5563; }
+        
+        .toast {
+            font-size: 19px; position: fixed; bottom: 20px; right: 20px;
+            padding: 12px 24px; border-radius: 12px; color: white; z-index: 1000;
+        }
+        .toast.success { background: var(--success); color: #000; }
+        .toast.error { background: var(--danger); color: #fff; }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-shell">
+
+        <div class="app-left">
+            <header class="header">
+                <div>
+                    <div style="font-size:26px;font-weight:600;">📁 DOC AI WORKSPACE</div>
+                    <div style="font-size:20px;color:var(--text-muted);">Upload, summarize & chat</div>
+                </div>
+                <div style="border:1px solid #4ade80;padding:6px 12px;border-radius:20px;font-size:18px; margin-top: 10px; display:inline-block;">
+                    <span id="connection-status">Ready</span>
+                </div>
+            </header>
+
+            <section class="upload-card">
+                <label class="dropzone" id="dropzone">
+                    <input type="file" id="file-input" accept="application/pdf" hidden />
+                    ⬆️ Drag & drop PDF
+                </label>
+
+                <div id="file-status" style="display:none;font-size:18px;">
+                    <div><span id="file-name"></span></div>
+                    <div id="file-meta"></div>
+                    <div style="height:6px;background:#1f2937;margin-top:8px;">
+                        <div id="upload-progress" style="height:6px;background:var(--accent);width:0%;"></div>
+                    </div>
+                    <div id="file-badge" style="font-size:18px;margin-top:8px;">PENDING</div>
+                </div>
+
+                <div style="display:flex;gap:14px;">
+                    <button class="btn btn-secondary" id="btn-upload">📤 Upload</button>
+                    <button class="btn btn-primary" id="btn-summarize" disabled>✨ Summarize</button>
+                </div>
+            </section>
+        </div>
+
+        <div class="app-right">
+
+            <div style="font-size:26px;">AI Summary & Q&A</div>
+
+            <div class="summary-panel">
+                <div style="font-size:22px;font-weight:600;">Document Summary</div>
+                <div id="summary-status" style="font-size:18px;color:var(--text-muted);">Not generated yet</div>
+                <div id="summary-content" class="summary-content">
+                    Click <b>Summarize</b> to generate overview.
+                </div>
+            </div>
+
+            <section class="question-box">
+                <div style="display:flex;gap:10px;">
+                    <input id="question-input" style="flex:1;padding:12px;font-size:18px;border-radius:12px;border:none;" placeholder="Ask something..." />
+                    <button class="btn btn-primary" id="btn-ask" disabled>🤖 Ask</button>
+                </div>
+                <div id="doc-status-mini" style="font-size:17px;color:var(--text-muted);margin-top:8px;">
+                    No document uploaded yet.
+                </div>
+            </section>
+
+            <section class="chat-panel">
+                <div id="chat-scroll" class="chat-scroll">
+                    <div id="chat-empty" style="text-align:center;color:var(--text-muted);margin-top:18px;">
+                        💬 Chat history appears here
+                    </div>
+                </div>
+                <div style="font-size:18px;color:var(--text-muted);border-top:1px solid #374151;padding-top:6px;">
+                    <span id="activity-text">Idle</span>
+                </div>
+            </section>
+
+        </div>
+
+    </div>
+
+    <script>
+        const ENDPOINTS = { upload: "/api/v1/upload", summarize: (id) => `/api/v1/summarize/${id}`, ask: "/api/v1/query" };
+        let selectedFile = null; let currentDocId = null;
+        const fileInput = document.getElementById("file-input"); const dropzone = document.getElementById("dropzone"); const fileStatus = document.getElementById("file-status"); const fileNameEl = document.getElementById("file-name"); const fileMetaEl = document.getElementById("file-meta"); const fileBadgeEl = document.getElementById("file-badge"); const progressBar = document.getElementById("upload-progress"); const btnUpload = document.getElementById("btn-upload"); const btnSummarize = document.getElementById("btn-summarize"); const btnAsk = document.getElementById("btn-ask"); const questionInput = document.getElementById("question-input"); const summaryStatus = document.getElementById("summary-status"); const summaryContent = document.getElementById("summary-content"); const chatScroll = document.getElementById("chat-scroll"); const chatEmpty = document.getElementById("chat-empty"); const activityText = document.getElementById("activity-text"); const connectionStatus = document.getElementById("connection-status"); const docStatusMini = document.getElementById("doc-status-mini");
+
+        const toast = (msg, type = "success") => { const el = document.createElement("div"); el.className = `toast ${type}`; el.innerHTML = msg; document.body.appendChild(el); setTimeout(() => el.remove(), 3000); };
+        const setActivity = (isActive, text = "") => { activityText.textContent = text || (isActive ? "Working…" : "Idle"); };
+        const setDocStatus = (text) => { docStatusMini.textContent = text; };
+        const setConnection = (text) => { connectionStatus.textContent = text; };
+        const formatBytes = (bytes) => { const sizes = ["B", "KB", "MB", "GB"]; let i = 0; while (bytes >= 1024) { bytes /= 1024; i++; } return bytes.toFixed(1) + " " + sizes[i]; };
+        
+        const addMessage = (role, text) => {
+            chatEmpty.style.display = "none";
+            const el = document.createElement("div");
+            el.className = "message " + role;
+            el.innerHTML = `<div>${text}</div><div style="opacity:.6;font-size:14px; margin-top:5px;">${role === "user" ? "You" : "Doc AI"}</div>`;
+            chatScroll.appendChild(el);
+            requestAnimationFrame(() => {
+                chatScroll.scrollTop = chatScroll.scrollHeight;
+            });
+        };
+
+        const resetProgress = () => { progressBar.style.width = "0%"; };
+
+        dropzone.addEventListener("click", () => fileInput.click());
+        fileInput.addEventListener("change", (e) => { if (e.target.files[0]) handleFileSelected(e.target.files[0]); });
+        dropzone.addEventListener("dragover", (e) => { e.preventDefault(); });
+        dropzone.addEventListener("drop", (e) => { e.preventDefault(); if (e.dataTransfer.files[0]) handleFileSelected(e.dataTransfer.files[0]); });
+
+        function handleFileSelected(file) {
+            if (file.type !== "application/pdf") return toast("Only PDF allowed!", "error");
+            selectedFile = file; currentDocId = null; resetProgress();
+            fileStatus.style.display = "block"; fileNameEl.textContent = file.name; fileMetaEl.textContent = formatBytes(file.size) + " • Not uploaded yet"; fileBadgeEl.textContent = "PENDING";
+            setDocStatus("File selected. Upload to continue."); btnSummarize.disabled = true; btnAsk.disabled = true;
+        }
+
+        btnUpload.addEventListener("click", async () => {
+            if (!selectedFile) return toast("Select a PDF first!", "error");
+            setActivity(true, "Uploading PDF…"); setConnection("Uploading…"); btnUpload.disabled = true;
+            try {
+                const formData = new FormData(); formData.append("file", selectedFile);
+                const res = await fetch(ENDPOINTS.upload, { method: "POST", body: formData });
+                if (!res.ok) throw new Error("Upload failed");
+                const data = await res.json(); currentDocId = data.doc_id;
+                if (!currentDocId) throw new Error("No doc_id returned");
+                progressBar.style.width = "100%"; fileBadgeEl.textContent = "READY"; fileMetaEl.textContent = formatBytes(selectedFile.size) + " • Uploaded";
+                setDocStatus(`Document ready. ID: ${currentDocId}`); setConnection(`Doc ID: ${currentDocId}`);
+                btnSummarize.disabled = false; btnAsk.disabled = false; toast("Upload successful!");
+            } catch (err) { toast(err.message, "error"); setConnection("Upload error"); } finally { setActivity(false); btnUpload.disabled = false; }
+        });
+
+        btnSummarize.addEventListener("click", async () => {
+            setActivity(true, "Generating summary…"); summaryStatus.textContent = "Working…"; summaryContent.innerHTML = "⏳ Please wait...";
+            try {
+                const res = await fetch(ENDPOINTS.summarize(currentDocId), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ docId: currentDocId }) });
+                const data = await res.json(); summaryContent.textContent = data.summary; summaryStatus.textContent = "Done"; toast("Summary ready!");
+            } catch (err) { summaryContent.textContent = "❌ Failed: " + err.message; summaryStatus.textContent = "Error"; } finally { setActivity(false); }
+        });
+
+        btnAsk.addEventListener("click", async () => {
+            const query = questionInput.value.trim(); if (!query) return;
+            addMessage("user", query); questionInput.value = ""; setActivity(true, "Thinking…");
+            try {
+                const res = await fetch(ENDPOINTS.ask, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ docId: currentDocId, query: query }) });
+                const data = await res.json(); addMessage("assistant", data.answer);
+            } catch { addMessage("assistant", "❌ Something went wrong."); } finally { setActivity(false); }
+        });
+    </script>
+</body>
+</html>
