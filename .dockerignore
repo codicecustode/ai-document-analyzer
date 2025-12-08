@@ -1,0 +1,77 @@
+# Python cache and virtual env
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.so
+.venv/
+venv/
+env/
+ai-doc-analyzer-venv/
+.ai-doc-analyzer-venv/
+
+# Byte-compiled / compiled files
+*.sqlite3
+*.db
+*.log
+*.pid
+
+# Distribution / packaging
+build/
+dist/
+eggs/
+*.egg-info/
+.installed.cfg
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Environment variables and secrets
+.env
+*.env
+.env.*
+
+# Test files
+tests/
+coverage/
+htmlcov/
+.tox/
+.nox/
+.pytest_cache/
+
+# Local data
+*.pdf
+*.docx
+uploads/
+media/
+tmp/
+logs/
+
+# Git and local tools
+.git/
+.gitignore
+.gitattributes
+.gitlab/
+.github/
+*.md
+
+# Docker and CI artifacts
+docker-compose.yml
+.dockerignore
+
+# Node modules (if UI is present)
+node_modules/
+npm-debug.log
+
+# Cache dirs
+__cache__/
+.cache/
+.mypy_cache/
