@@ -1,9 +1,9 @@
 """Retrieval service for vector search operations."""
 import logging
 from typing import List, Dict
-from services.vector_db_service import get_pinecone_client
-from services.embedding_service import get_embedding_model
-from config.mongodb_config import get_db
+from app.services.vector_db_service import get_pinecone_client
+from app.services.embedding_service import get_embedding_model
+from app.config.mongodb_config import get_db
 
 logger = logging.getLogger(__name__)
 

@@ -1,8 +1,8 @@
 """Query processing service for user queries."""
 import logging
 from typing import List
-from services.llm_service import generate_llm_response
-from services.embedding_service import get_embedding_model
+from app.services.llm_service import generate_llm_response
+from app.services.embedding_service import get_embedding_model
 
 logger = logging.getLogger(__name__)
 

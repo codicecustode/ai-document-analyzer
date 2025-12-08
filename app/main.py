@@ -1,10 +1,10 @@
 from fastapi import FastAPI, APIRouter
-from routers.document_upload_route import router as document_router
-from routers.query_route import router as query_router
-from routers.summarize_route import router as summarize_router
+from app.routers.document_upload_route import router as document_router
+from app.routers.query_route import router as query_router
+from app.routers.summarize_route import router as summarize_router
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
-from config.mongodb_config import initialize_mongodb
+from app.config.mongodb_config import initialize_mongodb
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi import Request

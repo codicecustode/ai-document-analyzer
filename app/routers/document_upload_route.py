@@ -8,9 +8,9 @@ import logging
 from datetime import datetime
 import time
 
-from services.file_upload_service import save_uploaded_file
-from services.document_processor_service import process_document
-from services.document_metadata_service import (
+from app.services.file_upload_service import save_uploaded_file
+from app.services.document_processor_service import process_document
+from app.services.document_metadata_service import (
     save_document_metadata,
     get_document_metadata,
 )

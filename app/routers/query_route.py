@@ -7,14 +7,14 @@ from pydantic import BaseModel
 from typing import Optional
 import logging
 
-from services.query_service import (
+from app.services.query_service import (
     format_query_for_search,
     get_query_embedding,
     build_rag_prompt,
 )
-from services.retrieval_service import search_child_chunks
-from services.mongodb_service import get_parent_chunks_by_ids
-from services.llm_service import generate_llm_response
+from app.services.retrieval_service import search_child_chunks
+from app.services.mongodb_service import get_parent_chunks_by_ids
+from app.services.llm_service import generate_llm_response
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

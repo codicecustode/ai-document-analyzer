@@ -1,5 +1,5 @@
 """Text correction service using LLM to fix OCR errors."""
-from services.llm_service import generate_llm_response
+from app.services.llm_service import generate_llm_response
 import logging
 
 logger = logging.getLogger(__name__)

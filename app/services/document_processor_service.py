@@ -1,18 +1,18 @@
 """Document processing pipeline orchestrator."""
 import asyncio
 import logging
-from services.document_extraction_service import extract_text_with_ocr
-from services.text_cleaning_service import clean_ocr_text
-from services.text_correction_service import correct_ocr_text
-from services.chunking_service import get_text_splitters, chunk_text_hierarchically
-from services.embedding_service import get_embedding_model
-from services.vector_db_service import (
+from app.services.document_extraction_service import extract_text_with_ocr
+from app.services.text_cleaning_service import clean_ocr_text
+from app.services.text_correction_service import correct_ocr_text
+from app.services.chunking_service import get_text_splitters, chunk_text_hierarchically
+from app.services.embedding_service import get_embedding_model
+from app.services.vector_db_service import (
     get_vector_store,
     add_documents_to_vector_store,
     create_index_if_not_exists
 )
-from services.mongodb_service import save_parent_chunks
-from services.document_metadata_service import update_document_status
+from app.services.mongodb_service import save_parent_chunks
+from app.services.document_metadata_service import update_document_status
 import time
 from concurrent.futures import ThreadPoolExecutor
 

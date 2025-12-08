@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from services.llm_service import generate_llm_response
+from app.services.llm_service import generate_llm_response
 import logging
 
 load_dotenv()  # Load variables from .env file into environment

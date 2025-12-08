@@ -4,10 +4,10 @@ from pydantic import BaseModel
 from typing import Optional
 import logging
 
-from services.document_extraction_service import extract_text_with_ocr
-from services.text_cleaning_service import clean_ocr_text
-from services.summarizer_service import summarize_with_gemini
-from services.document_metadata_service import (
+from app.services.document_extraction_service import extract_text_with_ocr
+from app.services.text_cleaning_service import clean_ocr_text
+from app.services.summarizer_service import summarize_with_gemini
+from app.services.document_metadata_service import (
     get_document_text,
     get_document_metadata,
     save_document_summary

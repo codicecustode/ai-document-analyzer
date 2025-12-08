@@ -1,6 +1,6 @@
 """MongoDB service for document storage operations."""
 import logging
-from config.mongodb_config import get_db
+from app.config.mongodb_config import get_db
 from typing import List, Dict
 
 logger = logging.getLogger(__name__)
