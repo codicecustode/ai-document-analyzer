@@ -29,8 +29,8 @@ root_router = APIRouter()
 
 
 @root_router.get("/")
-async def root():
-    return {"message": "Document Analyzer API", "version": "2.0.0"}
+async def root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 @root_router.get("/api/v1/health")
