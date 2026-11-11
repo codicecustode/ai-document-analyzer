@@ -213,6 +213,11 @@ $('btnSummarize').addEventListener('click', async () => {
   try {
     const res = await fetch(`${API}/summarize/${currentDocId}`, { method:'POST', headers:{'Content-Type':'application/json'} });
     const data = await res.json();
+    if (!res.ok || !data.summary) {
+      $('summaryBox').innerHTML = `<div style="color:#f87171">${data.detail || 'Summarization failed. Check API keys in Render.'}</div>`;
+      $('statusBadge').textContent = 'Error';
+      return;
+    }
     $('summaryBox').innerHTML = `<div class="summary-text">${formatText(data.summary)}</div>`;
     $('copyBtn').style.display = 'block';
     $('statusBadge').textContent = 'Ready';
@@ -242,7 +247,7 @@ async function sendQuestion() {
       body: JSON.stringify({ query: q })
     });
     const data = await res.json();
-    addMsg('ai', data.answer);
+    addMsg('ai', data.answer || data.detail || 'No response from AI');
     if(data.session_id) sessionId = data.session_id;
   } catch(e) { addMsg('ai', 'Something went wrong: ' + e.message); }
   finally { $('typing').classList.remove('active'); $('btnAsk').disabled = false; $('chatInput').focus(); }
