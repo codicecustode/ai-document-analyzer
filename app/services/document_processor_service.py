@@ -32,7 +32,12 @@ async def process_document(file_path: str, doc_id: str) -> None:
         
         await update_document_status(doc_id, "processing", extracted_text, cleaned_text)
         
-        corrected_text = await asyncio.to_thread(correct_ocr_text, cleaned_text)
+        try:
+            corrected_text = await asyncio.to_thread(correct_ocr_text, cleaned_text)
+            logger.info("Text correction succeeded for %s", doc_id)
+        except Exception as correction_err:
+            logger.warning("Text correction failed for %s, using cleaned text: %s", doc_id, correction_err)
+            corrected_text = cleaned_text
         parent_chunks, child_chunks = await asyncio.to_thread(
             chunk_text_hierarchically, corrected_text, 
             *get_text_splitters()  # Assuming this returns splitters
