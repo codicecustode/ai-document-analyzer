@@ -20,8 +20,8 @@ PROVIDERS = {
         "key_env": "GEMINI_API_KEY",
         "max_input_chars": 400_000,
         "models": {
-            "gemini-2.5-flash": "Gemini 2.5 Flash",
-            "gemini-2.5-flash-lite": "Gemini 2.5 Flash-Lite",
+            "gemini-3.8-flash": "Gemini 3.8 Flash",
+            "gemini-2.0-flash-lite": "Gemini 2.0 Flash-Lite",
         },
     },
     "groq": {
@@ -48,7 +48,7 @@ PROVIDERS = {
     },
 }
 
-DEFAULT_CHOICE = ("gemini", "gemini-2.5-flash")
+DEFAULT_CHOICE = ("gemini", "gemini-3.8-flash")
 
 THINK_BLOCK = re.compile(r"<think>.*?</think>", re.DOTALL)
 
