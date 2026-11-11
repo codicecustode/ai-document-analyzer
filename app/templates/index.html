@@ -112,6 +112,12 @@
       <button class="btn btn-upload" id="btnUpload">Upload</button>
       <button class="btn btn-primary" id="btnSummarize" disabled>Summarize</button>
     </div>
+
+    <div class="panel-title" style="margin-top:0.75rem">LLM Provider</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
+      <select id="providerSelect" style="width:100%;background:#0f0f0f;border:1px solid #222;border-radius:6px;padding:0.4rem;color:#fff;font-size:0.75rem;outline:none" disabled><option>Loading...</option></select>
+      <select id="modelSelect" style="width:100%;background:#0f0f0f;border:1px solid #222;border-radius:6px;padding:0.4rem;color:#fff;font-size:0.75rem;outline:none" disabled><option>Loading...</option></select>
+    </div>
   </div>
 
   <!-- RIGHT: Main -->
@@ -149,6 +155,38 @@ let selectedFile = null, currentDocId = null, sessionId = null;
 
 const toast = (msg, ok=true) => { const el=document.createElement('div'); el.className=`toast ${ok?'toast-ok':'toast-err'}`; el.textContent=msg; document.body.appendChild(el); setTimeout(()=>el.remove(),3000); };
 const fmt = b => { const s=['B','KB','MB']; let i=0; while(b>=1024){b/=1024;i++;} return b.toFixed(1)+' '+s[i]; };
+
+// Load LLM providers
+let providers = [];
+async function loadModels() {
+  try {
+    const res = await fetch(API + '/models');
+    const data = await res.json();
+    providers = data.providers || [];
+    const ps = $('providerSelect');
+    ps.innerHTML = '';
+    providers.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id; opt.textContent = p.label + (p.available ? '' : ' (no key)');
+      opt.disabled = !p.available; ps.appendChild(opt);
+    });
+    if (data.default) ps.value = data.default.provider;
+    ps.disabled = false;
+    updateModels();
+    if (data.default) $('modelSelect').value = data.default.model;
+  } catch(e) { console.error('Models load failed', e); }
+}
+function updateModels() {
+  const pid = $('providerSelect').value;
+  const prov = providers.find(p => p.id === pid);
+  const ms = $('modelSelect'); ms.innerHTML = '';
+  if (prov && prov.models) {
+    prov.models.forEach(m => { const o = document.createElement('option'); o.value = m.id; o.textContent = m.label; ms.appendChild(o); });
+  }
+  ms.disabled = false;
+}
+$('providerSelect').addEventListener('change', updateModels);
+loadModels();
 
 // File selection
 $('dropzone').addEventListener('click', () => $('fileInput').click());
@@ -211,7 +249,7 @@ $('btnSummarize').addEventListener('click', async () => {
   $('btnSummarize').disabled = true; $('statusBadge').textContent = 'Summarizing...';
   $('summaryBox').innerHTML = '<div class="summary-placeholder">Generating summary...</div>';
   try {
-    const res = await fetch(`${API}/summarize/${currentDocId}`, { method:'POST', headers:{'Content-Type':'application/json'} });
+    const res = await fetch(`${API}/summarize/${currentDocId}?provider=${$('providerSelect').value}&model=${$('modelSelect').value}`, { method:'POST', headers:{'Content-Type':'application/json'} });
     const data = await res.json();
     if (!res.ok || !data.summary) {
       $('summaryBox').innerHTML = `<div style="color:#f87171">${data.detail || 'Summarization failed. Check API keys in Render.'}</div>`;
@@ -244,7 +282,7 @@ async function sendQuestion() {
   try {
     const res = await fetch(`${API}/query`, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ query: q })
+      body: JSON.stringify({ query: q, provider: $('providerSelect').value, model: $('modelSelect').value })
     });
     const data = await res.json();
     addMsg('ai', data.answer || data.detail || 'No response from AI');
