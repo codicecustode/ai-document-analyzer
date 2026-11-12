@@ -30,7 +30,7 @@ root_router = APIRouter()
 
 @root_router.get("/")
 async def root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request, "index.html")
 
 
 @root_router.get("/api/v1/health")
@@ -53,7 +53,7 @@ templates = Jinja2Templates(directory="app/templates")
 
 @app.get("/api/v1", response_class=HTMLResponse)
 async def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request, "index.html")
 
 
 app.include_router(document_router, prefix="/api/v1", tags=["Documents"])
